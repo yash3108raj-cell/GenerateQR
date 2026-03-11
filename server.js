@@ -20,7 +20,7 @@ app.get("/generate", (req, res) => {
     used: false
   });
 
-  res.send(`http://10.197.103.189:3000/scan/${token}`);
+  res.send(`/scan/${token}`);
 });
 
 app.get("/scan/:token", (req, res) => {
