@@ -22,7 +22,7 @@ app.get("/generate", (req, res) => {
 
   const baseUrl = req.protocol + "://" + req.get("host");
 
-  res.send(${baseUrl}/scan/${token});
+  res.send(`${baseUrl}/scan/${token}`);
 });
 
 app.get("/scan/:token", (req, res) => {
