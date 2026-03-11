@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>QR Generator</title>
+  <style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #3bc5ba;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  .card {
+    background: #ffffff;
+    padding: 25px 30px;
+    width: 320px;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+
+  h2 {
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+
+  button {
+    width: 100%;
+    padding: 10px;
+    background: #007bff;
+    border: none;
+    color: white;
+    font-size: 15px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #0056b3;
+  }
+
+  #url {
+    word-break: break-all;
+    font-size: 12px;
+    color: #555;
+    margin-top: 15px;
+  }
+
+  #qrcode {
+    margin-top: 15px;
+  }
+  #timer {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #d9534f;
+  font-weight: bold;
+}
+
+#downloadBtn {
+  margin-top: 10px;
+  background: #28a745;
+}
+
+#downloadBtn:hover {
+  background: #1e7e34;
+}
+</style>
+</head>
+<body>
+
+  <div class="card">
+  <h2>QR GENERATOR</h2>
+
+  <input type="number" id="amount" placeholder="Amount">
+  <input type="number" id="time" placeholder="Time (minutes)" value="5">
+  <input type="text" id="upi" placeholder="UPI ID">
+
+  <button onclick="generateQR()">Generate QR</button>
+
+  <p id="url"></p>
+  <div id="qrcode"></div>
+  <p id="timer"></p>
+
+<button id="downloadBtn" onclick="downloadQR()" style="display:none;">
+  Download QR
+</button>
+</div>
+
+
+
+  <!-- QR library -->
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+  // ✅ correct variable name
+  let countdownInterval;
+
+  async function generateQR() {
+    const amount = document.getElementById("amount").value;
+    const time = document.getElementById("time").value;
+    const upi = document.getElementById("upi").value;
+
+    if (!amount || !time || !upi) {
+      alert("Fill all fields");
+      return;
+    }
+
+    // ✅ correct fetch syntax
+    const res = await fetch(
+      `/generate?amount=${amount}&time=${time}&upi=${upi}`
+    );
+    const url = await res.text();
+
+    document.getElementById("url").innerText = url;
+
+    const qr = document.getElementById("qrcode");
+    qr.innerHTML = "";
+
+    new QRCode(qr, {
+      text: url,
+      width: 200,
+      height: 200
+    });
+
+    startCountdown(parseInt(time));
+
+    const btn = document.getElementById("downloadBtn");
+    if (btn) btn.style.display = "block";
+  }
+
+  function startCountdown(minutes) {
+    if (!minutes || isNaN(minutes)) return;
+
+    clearInterval(countdownInterval);
+
+    let seconds = minutes * 60;
+    const timerEl = document.getElementById("timer");
+    if (!timerEl) return;
+
+    countdownInterval = setInterval(() => {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+
+      timerEl.innerText =
+        `QR expires in ${m}:${s < 10 ? "0" : ""}${s};`
+
+      if (seconds <= 0) {
+        clearInterval(countdownInterval);
+        timerEl.innerText = "❌ QR Expired";
+        document.getElementById("qrcode").innerHTML = "";
+        document.getElementById("downloadBtn").style.display = "none";
+      }
+
+      seconds--;
+    }, 1000);
+  }
+
+  function downloadQR() {
+    const img = document.querySelector("#qrcode img");
+    if (!img) return;
+
+    const link = document.createElement("a");
+    link.href = img.src;
+    link.download = "upi-qr.png";
+    link.click();
+  }
+</script>
+
+</body>
+</html>
